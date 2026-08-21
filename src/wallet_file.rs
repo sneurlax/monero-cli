@@ -197,7 +197,7 @@ mod tests {
 
     fn vector_path(name: &str) -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../monero-rust/tests/vectors/cold_signing_regtest_v0_18_5_0")
+            .join("../monero-rust/rust/monero-rust/tests/vectors/cold_signing_regtest_v0_18_5_0")
             .join(name)
     }
 
