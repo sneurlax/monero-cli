@@ -54,6 +54,15 @@ fn network_to_nettype(network: &str) -> Result<u8, String> {
     }
 }
 
+pub fn parse_network(network: &str) -> Result<monero_rust::Network, String> {
+    match network {
+        "mainnet" => Ok(monero_rust::Network::Mainnet),
+        "stagenet" => Ok(monero_rust::Network::Stagenet),
+        "testnet" => Ok(monero_rust::Network::Testnet),
+        _ => Err(format!("Unknown network: {network}")),
+    }
+}
+
 fn nettype_to_network(nettype: u8) -> Result<String, String> {
     match nettype {
         0 => Ok("mainnet".to_string()),
@@ -69,7 +78,7 @@ fn nettype_to_network(nettype: u8) -> Result<String, String> {
 /// The `.cache` file stores sync state (height, outputs) encrypted with ChaCha20-Poly1305+Argon2.
 pub fn save_wallet(path: &Path, data: &WalletData, password: &str) -> Result<(), String> {
     // --- 1. Build and write the .keys file ---
-    let keys = monero_rust::derive_keys(&data.mnemonic, &data.network, "")?;
+    let keys = monero_rust::derive_keys(&data.mnemonic, parse_network(&data.network)?, "")?;
 
     let spend_secret = if data.is_view_only() {
         [0u8; 32]
@@ -214,8 +223,9 @@ mod tests {
             format!("viewonly:{COLD_SIGNING_VIEW_KEY}:{COLD_SIGNING_PUBLIC_SPEND_KEY}")
         );
         assert_eq!(
-            monero_rust::derive_address(&data.mnemonic, &data.network, "")
-                .expect("view-only sentinel should derive address"),
+            monero_rust::derive_address(&data.mnemonic, parse_network(&data.network).unwrap(), "")
+                .expect("view-only sentinel should derive address")
+                .to_string(),
             COLD_SIGNING_ADDRESS
         );
     }

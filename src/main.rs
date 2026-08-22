@@ -2,7 +2,7 @@ mod wallet_file;
 
 use clap::{Parser, Subcommand, ValueEnum};
 use indicatif::{ProgressBar, ProgressStyle};
-use wallet_file::{resolve_wallet_path, WalletData};
+use wallet_file::{parse_network, resolve_wallet_path, WalletData};
 
 fn parse_xmr_to_piconero(s: &str) -> Result<u64, String> {
     let s = s.trim();
@@ -190,7 +190,7 @@ fn cmd_generate(
     wallet_path: Option<&str>,
 ) -> Result<(), String> {
     let mnemonic = monero_rust::generate_seed(seed_type.into())?;
-    let address = monero_rust::derive_address(&mnemonic, network, "")?;
+    let address = monero_rust::derive_address(&mnemonic, parse_network(network)?, "")?;
 
     println!("=== New Monero Wallet ===");
     println!();
@@ -245,7 +245,7 @@ fn cmd_address(network: &str) -> Result<(), String> {
     let mnemonic = mnemonic.trim();
     monero_rust::validate_seed(mnemonic)?;
 
-    let keys = monero_rust::derive_keys(mnemonic, network, "")?;
+    let keys = monero_rust::derive_keys(mnemonic, parse_network(network)?, "")?;
 
     println!("=== Wallet Keys ===");
     println!();
@@ -339,7 +339,7 @@ async fn cmd_sync(daemon: &str, wallet_path: Option<&str>) -> Result<(), String>
         return Ok(());
     }
 
-    let address = monero_rust::derive_address(mnemonic, network, "")?;
+    let address = monero_rust::derive_address(mnemonic, parse_network(network)?, "")?;
     println!("Syncing wallet: {}", address);
     println!(
         "Scanning from height {} to {} ({} blocks)",
@@ -599,8 +599,9 @@ fn cmd_info(wallet_path: Option<&str>) -> Result<(), String> {
 
     let data = wallet_file::load_wallet(&path, &password)?;
 
-    let address = monero_rust::derive_address(&data.mnemonic, &data.network, "")?;
-    let keys = monero_rust::derive_keys(&data.mnemonic, &data.network, "")?;
+    let network = parse_network(&data.network)?;
+    let address = monero_rust::derive_address(&data.mnemonic, network, "")?;
+    let keys = monero_rust::derive_keys(&data.mnemonic, network, "")?;
 
     let unspent_count = data.outputs.iter().filter(|o| !o.spent).count();
 
