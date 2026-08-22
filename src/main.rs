@@ -558,7 +558,6 @@ async fn cmd_transfer(
             tx_hash: change.tx_hash.clone(),
             output_index: change.output_index,
             amount: change.amount,
-            amount_xmr: change.amount_xmr.clone(),
             key: change.key.clone(),
             key_offset: change.key_offset.clone(),
             commitment_mask: change.commitment_mask.clone(),
