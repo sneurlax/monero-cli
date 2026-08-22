@@ -1,6 +1,6 @@
 mod wallet_file;
 
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use indicatif::{ProgressBar, ProgressStyle};
 use wallet_file::{resolve_wallet_path, WalletData};
 
@@ -50,9 +50,9 @@ struct Cli {
 enum Command {
     /// Generate a new wallet seed phrase
     Generate {
-        /// Seed type: "legacy" (25-word) or "polyseed" (16-word)
+        /// Seed type: "legacy" (25-word), "polyseed" (16-word), or "bip39" (12-word)
         #[arg(long, default_value = "legacy")]
-        seed_type: String,
+        seed_type: SeedFormatArg,
 
         /// Network: "mainnet", "stagenet", or "testnet"
         #[arg(long, default_value = "mainnet")]
@@ -131,6 +131,24 @@ enum Command {
     },
 }
 
+#[derive(Clone, Copy, ValueEnum)]
+enum SeedFormatArg {
+    #[value(alias = "classic")]
+    Legacy,
+    Polyseed,
+    Bip39,
+}
+
+impl From<SeedFormatArg> for monero_rust::SeedFormat {
+    fn from(value: SeedFormatArg) -> Self {
+        match value {
+            SeedFormatArg::Legacy => Self::Classic,
+            SeedFormatArg::Polyseed => Self::Polyseed,
+            SeedFormatArg::Bip39 => Self::Bip39,
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
@@ -141,7 +159,7 @@ async fn main() {
             network,
             save,
             wallet,
-        } => cmd_generate(&seed_type, &network, save, wallet.as_deref()),
+        } => cmd_generate(seed_type, &network, save, wallet.as_deref()),
         Command::Address { network } => cmd_address(&network),
         Command::Balance { wallet } => cmd_balance(wallet.as_deref()),
         Command::Sync { daemon, wallet } => cmd_sync(&daemon, wallet.as_deref()).await,
@@ -166,12 +184,12 @@ async fn main() {
 }
 
 fn cmd_generate(
-    seed_type: &str,
+    seed_type: SeedFormatArg,
     network: &str,
     save: bool,
     wallet_path: Option<&str>,
 ) -> Result<(), String> {
-    let mnemonic = monero_rust::generate_seed(seed_type)?;
+    let mnemonic = monero_rust::generate_seed(seed_type.into())?;
     let address = monero_rust::derive_address(&mnemonic, network, "")?;
 
     println!("=== New Monero Wallet ===");
