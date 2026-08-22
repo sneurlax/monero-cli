@@ -74,11 +74,14 @@ pub fn save_wallet(path: &Path, data: &WalletData, password: &str) -> Result<(),
     let spend_secret = if data.is_view_only() {
         [0u8; 32]
     } else {
-        hex_to_key(&keys.secret_spend_key, "secret_spend_key")?
+        keys.secret_spend_key
+            .as_deref()
+            .copied()
+            .ok_or_else(|| "full wallet derivation did not return a spend key".to_string())?
     };
-    let view_secret = hex_to_key(&keys.secret_view_key, "secret_view_key")?;
-    let spend_public = hex_to_key(&keys.public_spend_key, "public_spend_key")?;
-    let view_public = hex_to_key(&keys.public_view_key, "public_view_key")?;
+    let view_secret = *keys.secret_view_key;
+    let spend_public = keys.public_spend_key;
+    let view_public = keys.public_view_key;
     let nettype = network_to_nettype(&data.network)?;
 
     let mut rng = rand::thread_rng();
@@ -175,13 +178,6 @@ pub fn load_wallet(path: &Path, password: &str) -> Result<WalletData, String> {
         last_sync_height,
         outputs,
     })
-}
-
-fn hex_to_key(hex_str: &str, name: &str) -> Result<[u8; 32], String> {
-    let bytes = hex::decode(hex_str).map_err(|e| format!("Failed to decode {}: {}", name, e))?;
-    bytes
-        .try_into()
-        .map_err(|_| format!("{}: expected 32 bytes", name))
 }
 
 #[cfg(test)]

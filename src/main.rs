@@ -253,16 +253,22 @@ fn cmd_address(network: &str) -> Result<(), String> {
     println!("  {}", keys.address);
     println!();
     println!("Secret spend key:");
-    println!("  {}", keys.secret_spend_key);
+    println!(
+        "  {}",
+        keys.secret_spend_key
+            .as_deref()
+            .map(hex::encode)
+            .unwrap_or_else(|| "(view-only)".to_string())
+    );
     println!();
     println!("Secret view key:");
-    println!("  {}", keys.secret_view_key);
+    println!("  {}", hex::encode(&*keys.secret_view_key));
     println!();
     println!("Public spend key:");
-    println!("  {}", keys.public_spend_key);
+    println!("  {}", hex::encode(keys.public_spend_key));
     println!();
     println!("Public view key:");
-    println!("  {}", keys.public_view_key);
+    println!("  {}", hex::encode(keys.public_view_key));
 
     Ok(())
 }
@@ -603,7 +609,7 @@ fn cmd_info(wallet_path: Option<&str>) -> Result<(), String> {
     println!("Wallet file:      {}", path.display());
     println!("Network:          {}", data.network);
     println!("Primary address:  {}", address);
-    println!("Public view key:  {}", keys.public_view_key);
+    println!("Public view key:  {}", hex::encode(keys.public_view_key));
     println!("Last sync height: {}", data.last_sync_height);
     println!("Total outputs:    {}", data.outputs.len());
     println!("Unspent outputs:  {}", unspent_count);

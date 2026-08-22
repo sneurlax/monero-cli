@@ -441,6 +441,7 @@ dependencies = [
 [[package]]
 name = "cuprate-cryptonight"
 version = "0.1.0"
+source = "git+https://github.com/Cuprate/cuprate?rev=b6a0302c8189187c7b85059c81086858bd4e4352#b6a0302c8189187c7b85059c81086858bd4e4352"
 dependencies = [
  "digest",
  "groestl",
@@ -1443,6 +1444,7 @@ dependencies = [
 [[package]]
 name = "monero-epee-bin-serde"
 version = "1.0.1"
+source = "git+https://github.com/comit-network/monero-epee-bin-serde?rev=fae7a23f8e57f19553c341c0878b4f0fa5a6994d#fae7a23f8e57f19553c341c0878b4f0fa5a6994d"
 dependencies = [
  "byteorder",
  "serde",
