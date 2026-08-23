@@ -378,7 +378,7 @@ async fn cmd_sync(daemon: &str, wallet_path: Option<&str>) -> Result<(), String>
         let (batch_results, returned_scanner) = monero_rust::process_fetched_batch_cached(
             fetched,
             mnemonic,
-            network,
+            parse_network(network)?,
             lookahead,
             cached_scanner,
             "",
